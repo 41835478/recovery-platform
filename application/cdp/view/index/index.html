@@ -1,0 +1,407 @@
+{extend name="common@public/base"/}
+{block name="style"}
+<link rel="stylesheet" type="text/css" href="__PUBLIC__/css/libs/bootstrap-editable.css">
+<style>
+    .tooltip-inner{
+        background-color: transparent;
+    }
+    .more-info-box{
+        width: 270px;
+        text-align: left;
+        padding: 0px 10px;
+        background-color: #2c3b41;
+        border-radius: 2px;
+    }
+    .more-info-tip{
+
+        text-align: left;
+        display: inline-block;
+        padding: 0px 20px;
+        display: inline-block;
+        line-height: 1.8em;
+        font-weight: 500;
+        font-size: 15px;
+        color: whitesmoke;
+    }
+    .load-div{
+        width: 200px;
+        height: 100px;
+        background-color: whitesmoke;
+        text-align: center;
+        border-radius: 2px;
+        line-height: 100px;
+
+    }
+    .load-div>i{
+        color: darkgrey;
+        font-size: 30px;
+    }
+
+</style>
+{/block}
+{block name="body"}
+<section class="content-header">
+  <h1>{$meta_title}<small></small></h1>
+  <ol class="breadcrumb">
+    <li><a href="{:url('admin/index/index')}"><i class="fa fa-dashboard"></i> {:lang('console')}</a></li>
+        {volist name="__menu__['parent']" id="pitem"}
+            <li class="{$pitem.action}">{if condition="$pitem.action eq ''"}<a href="{$pitem.url|url}" > {$pitem.title}</a>{else/} {$pitem.title}{/if}</li>
+        {/volist}
+  </ol>
+</section>
+<section class="content">
+<div class="box box-solid clearfix">
+	<header class="box-header clearfix">
+		<div class="pull-left">
+			<a class="btn btn-primary" href="javascript:" data_role="add_device" >{:lang('add_device')}</a>
+		</div>
+        <div class="pull-right">
+            <a class="btn btn-default" href="javascript:" data_role="view_log" style="margin-right: 20px" ><i class="fa fa-eye"></i>{:lang('view_log')}</a>
+        </div>
+	</header>
+
+
+    <!--日志信息 begin-->
+    <div class="box box-default box-solid log_body info temp_info" style="display: none;">
+        <div class="box-header with-border"><h3 class="box-title">{:lang('log')}{:lang('info')}</h3></div>
+        <div class="box-body" style="max-height: 400px;overflow-x: auto">
+            <div class="clearfix log-content">
+                <div class="text-center">
+                    <i  class="fa fa-spinner fa-spin" style="font-size: 30px"></i>
+                    <span style="font-size: 15px;font-weight: bold;line-height: 40px">正在获取...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 日志信息end -->
+
+	<div class="box-body clearfix">
+        <div class="table-responsive clearfix">
+            <table class="table table-hover">
+				<thead>
+					<tr>
+						<th><input class="checkbox check-all" type="checkbox"></th>
+						<th>{:lang('id')}</th>
+						<th >{:lang('ip')}</th>
+                        <th>{:lang('system_type')}</th>
+                        <th>{:lang('creation_time')}</th>
+                        <th>{:lang('state')}</th>
+						<th>{:lang('operation')}</th>
+					</tr>
+				</thead>
+				<tbody>
+					{volist name="list" id="item"}
+					<tr>
+						<td><input class="ids row-selected" type="checkbox" name="id[]" value="{$item['device_id']}"></td>
+						<td>{$item['device_id']|default=0}</td>
+                        <td  >
+                            <span style="cursor: pointer;padding: 8px;" class="more_info"  data-toggle="tooltip"  data-html="true"  data-placement="top"  data-original-title='<div class="load-div load-box"><i class="fa fa-spinner fa-spin"></i></div>' data_role="instead_hostX" device-id="{$item['device_id']}">
+                                <a  href="{:url('detail?id='.$item['device_id'])}" >
+                                    {$item['data']['ip']}
+                                    {if !empty($item['data']['alias'])}
+                                        ({$item['data']['alias']})
+                                    {/if}
+                                </a>
+                            </span>
+                        </td>
+                        <td>{$item['data']['system_type']}</td>
+                        <td>{$item['create_time']}</td>
+                        <td>
+                        {if condition="$item['data']['status'] eq 1"}
+                            <span class="label bg-green">{:lang('device')}{:lang('online')}</span>
+                                {else/}
+                            <span class="label bg-gray">{:lang('device')}{:lang('offline')}</span>
+                        {/if}
+
+                        </td>
+						<td>
+                        	<a href="{:url('detail?id='.$item['device_id'])}" class="">{:lang('manage')}</a>
+
+                            <a href="javascript:" class="del-device-btn" device-id="{$item['device_id']}">{:lang('delete')}</a>
+						</td>
+					</tr>
+					{/volist}
+				</tbody>
+			</table>
+			{$page}
+		</div>
+	</div>
+</div>
+</section>
+
+<div class="modal" id="add_device">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title"><i class="fa fa-exclamation-circle"></i> {:lang('add_device')}<strong></strong></h4>
+      </div>
+      <div class="modal-body">
+      	{empty	name="exclusivedevice"}
+        <h4 align="center">{:lang('no_device_available')}</h4>
+        {else/}
+        <form class="form form-horizontal device_edit_form" role="form" method="post" action="{:url('add_device')}">
+            <div class="form-group" style="margin-top:20px; display:block">
+                <label class="col-lg-1 control-label"></label>
+                <div class="col-lg-9">
+                {volist name="exclusivedevice" id="vo"}
+                <label class="checkbox-inline" style="padding-left:0"><input type="checkbox" class="device_config" name="deviceinfo[]" value="{$vo.id}"> {$vo.ip}</label>
+                {/volist}
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-offset-1 col-lg-11">
+                    <button type="submit" class="btn btn-success ajax-post" target-form="device_edit_form">{:lang('submit')}</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">{:lang('cancel')}</button>
+                </div>
+            </div>
+        </form>
+
+        {/empty}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="del_device" >
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><i class="fa fa-exclamation-circle"></i> <span id="edit_task_title">{:lang('del_device')}</span></h4>
+            </div>
+            <form class="form form-horizontal cdp-del-device" role="form" method="post" action="{:url('cdp/index/del_device')}">
+                <div class="modal-body">
+                        <div class="box-body">
+
+                            <div class="form-group">
+                                <div class="col-sm-10">
+                                    <input type="hidden" id="del_device_id" name="id" value="">
+                                    <label class="checkbox-inline" style="padding-left:0">
+                                        <input type="checkbox" class="device_config" name="del_backup_data" value="1">
+                                    </label>
+                                    <span class="checkbox-inline" style="padding-left: 10px;margin: 0px" > 是否删除已备份的数据</span>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer" style=" padding:10px 0 0 0">
+                                <button type="submit" class="btn btn-success ajax-post click-del-device-btn" target-form="cdp-del-device">{:lang('confirm')}</button>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">{:lang('cancel')}</button>
+                            </div>
+                        </div>
+                    </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{/block}
+{block name="script"}
+<script type="text/javascript">
+
+$(function() {
+
+	$('.device_config').iCheck({
+	  labelHover: false,
+	  cursor: true,
+	   checkboxClass: 'icheckbox_minimal-blue',
+	});
+
+	/*增加设备*/
+	$(document).on('click', '[data_role="add_device"]', function (e) {
+
+		e.preventDefault();
+		var $this = $(this);
+		var id = $this.attr('data_id');
+		$("#add_device").modal('show');
+	});
+
+    $(function () { $("[data-toggle='tooltip']").tooltip(); });
+
+
+
+
+
+    /*醒看设备信息*/
+    $(document).on('click', '[data_role="view_log"]', function (e) {
+
+        e.preventDefault();
+        var $this = $(this);
+        if($(".log_body").is(":hidden")){
+            $(".temp_info").hide();
+            $this.find('i').removeClass();
+            $this.find('i').addClass("fa fa-eye-slash");
+            $('.log_body').slideToggle();
+        }else{
+            $this.find('i').removeClass();
+            $this.find('i').addClass("fa fa-eye");
+            $('.log_body').slideToggle();
+        }
+    })
+
+    $(".click-del-device-btn").click(function(e){
+
+        e.preventDefault();
+        $("#del_device").modal("hide");
+        friendlyTip("正在删除,请稍后..","删除失败",5000,3000);
+
+    });
+
+   $('.del-device-btn').click(function(e){
+       e.preventDefault();
+       var device_id = $(this).attr('device-id');
+       $('#del_device_id').val(device_id);
+       $("#del_device").modal("show");
+   })
+
+    $('#del_device').on('shown.bs.modal', function (e) {
+
+        $(this).css('display', 'block');
+        var modalHeight=$(window).height() / 3
+        $(this).find('.modal-dialog').css({
+            'margin-top': modalHeight
+        });
+    });
+
+
+
+
+    $(".more_info").hover(function(event){
+
+        event.preventDefault();
+
+        var _this = $(this);
+
+        var id = _this.attr('device-id');
+
+        if(_this.hasClass('have-get-info')){
+            return ;
+        }
+
+        var html = "";
+
+        $.ajax({
+            url : '/api/index/get_more_info?device_id='+id,
+            type : 'get',
+            async : true,
+            dataType : 'json',
+            success : function(res){
+                if(res.have_current_task == 0){
+                    html +="<div class='more-info-box'><span class='more-info-tip' >任务数: "+res.task_count+" (无最新任务)</span></div>";
+                }else{
+                    var taskStatus_str = (res.task_status==1)?'任务已完成':"任务未完成";
+                    html +="<div class='more-info-box'><span  class='more-info-tip'>任务数: "+res.task_count+" ("+taskStatus_str+")</span></div>";
+                }
+                html +="<div class='more-info-box'><span  class='more-info-tip'>快照数: "+res.snap_count+"</span></div>";
+                html +="<div class='more-info-box'><span  class='more-info-tip'>虚机数: "+res.virtual_count+" ("+res.status_on+" 台虚机在线)</span></div>";
+                html +="<div class='more-info-box'><span  class='more-info-tip'>演练虚机数: "+res.exercise_count+" ("+res.exercise_on+" 台虚机在线)</span></div>";
+                if(res.soft_type != 0){
+                    html +="<div class='more-info-box'><span  class='more-info-tip'>接管虚机数: "+res.take_over_on+" ("+res.take_over_count+" 台虚机在线)</span></div>";
+                }
+
+                _this.attr('data-original-title',html);
+                _this.addClass('have-get-info');
+                if(!_this.hasClass("have-leave")){
+                    _this.tooltip('show');
+                }
+            }
+        });
+
+    });
+
+    $(".more_info").mouseleave(function (e) {
+        e.preventDefault();
+        console.log('mouse-leave');
+        var _this = $(this);
+        _this.addClass('have-leave');
+    });
+
+
+    function sleep(numberMillis) {
+        var now = new Date();
+        var exitTime = now.getTime() + numberMillis;
+        while (true) {
+            now = new Date();
+            if (now.getTime() > exitTime)
+                return;
+        }
+    }
+
+});
+
+</script>
+<!--请求日志信息-->
+<script>
+
+
+
+    $(function () {
+
+
+        $(document).on('click', '[data_role="view_log"]', function (e) {
+            e.preventDefault();
+            var _this=$(this);
+            if (_this.hasClass('have-get-log')){
+                return ;
+            }
+            $.ajax({
+                url:"{:url('cdp/index/get_log')}",
+                data:{"type":"cdp_index"},
+                type:"get",
+                async:true,
+                success:function(resJson){
+
+                    if(resJson.code==0){
+                        var html = '<div class="text-center" style="font-size:1.5em"><i class="fa fa-warning"></i> {:lang("no_content")}</div>';
+
+                    }else{
+
+                        _this.addClass('have-get-log');
+                        var time = resJson.time;
+                        var data = resJson.data;
+                        var logs = '';
+                        var html = ' <ul class="timeline">';
+                        for(var i=0;i<time.length;i++){
+                            html += ' <li class="time-label">';
+                            html += ' <span class="bg-green" style="font-weight:normal; font-size:12px">';
+                            html += time[i];
+                            html += ' </span></li>';
+                            logs = data[i];
+                            for(var j=0;j<logs.length;j++){
+                                var log = logs[j];
+                                html += '<li> <i class="fa fa-arrow-right "></i><div class="timeline-item"><span class="time" style="padding-top:5px"><i class="fa fa-clock-o"></i>';
+                                html += formatDateTime(log.create_time);
+                                html += '</span><h3 class="timeline-header" style="padding-top:3px; border-bottom:0"> <a class=" text-red" href="javascript:">';
+                                html += log.action_title;
+                                html += '</a> </h3>';
+                                html += '<div class="timeline-body" style="padding: 2px 10px">';
+                                html += log.remark;
+                                html += '</div></div></li>';
+                            }
+                        }
+                        html += '</ul>';
+                    }
+                    $(".log-content").html(html);
+                }
+            });
+        })
+
+    });
+
+    function formatDateTime(timeStamp) {
+        var date = new Date();
+        date.setTime(timeStamp * 1000);
+        var h = date.getHours();
+        h = h < 10 ? ('0' + h) : h;
+        var minute = date.getMinutes();
+        var second = date.getSeconds();
+        minute = minute < 10 ? ('0' + minute) : minute;
+        second = second < 10 ? ('0' + second) : second;
+        return h+':'+minute+':'+second;
+    };
+
+</script>
+{/block}

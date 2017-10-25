@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>信息提示</title>
+<script src="__PUBLIC__/adminlte/plugins/jQuery/jquery-2.2.3.min.js"></script>
+<script src="__PUBLIC__/adminlte/plugins/layer/2.4/layer.js"></script>
+<style type="text/css">
+body,html{font-family: "微软雅黑","Microsoft YaHei";}
+.layui-layer-ico{position: absolute;
+    top: 15px;
+    left: 30px;
+    width: 30px;
+    height: 30px;}
+
+.layui-layer-content {
+    position: relative;
+
+}
+</style>
+<script type="text/javascript">
+$(function(){
+var href_url = '<?php echo($url);?>';
+var code_type = '<?php echo($code);?>';
+var text_content = '{$msg|strip_tags}';
+var wait = '<?php echo($wait);?>';
+var _content = '<div style="padding: 20px 30px 0px 30px; line-height: 22px; color: #000; font-weight: 300;">';
+
+if(code_type == 1){
+ _content +='<div style="padding-left:45px"><i class="layui-layer-ico layui-layer-ico6"></i>'+text_content+'</div>';	
+}else{
+ _content +='<div style="padding-left:45px"><i class="layui-layer-ico layui-layer-ico5"></i>'+text_content+'</div>';	
+}
+ _content +='<p class="jump" style="padding-top: 10px;color: #000;font-size:14px">页面自动跳转 等待时间： <span id="wait_id">'+wait+'</span></p></div>'
+
+
+//示范一个公告层
+layer.open({
+  type: 1
+  ,title: false //不显示标题栏
+  ,closeBtn: false
+  ,area: '300px;'
+  ,shade: 0.8
+  ,id: 'LAY_layuipro' //设定一个id，防止重复弹出
+  ,resize: false
+  ,btn: ['跳转']
+  ,btnAlign: 'c'
+  ,moveType: 1 //拖拽模式，0或者1
+  ,content: _content
+  ,success: function(layero){
+    var btn = layero.find('.layui-layer-btn');
+    btn.find('.layui-layer-btn0').attr({
+      href: href_url
+    });
+  }
+});
+	
+var wait_id = document.getElementById('wait_id');
+var interval = setInterval(function(){
+	var time = --wait_id.innerHTML;
+	if(time <= 0) {
+		location.href = href_url;
+		clearInterval(interval);
+	};
+}, 1000);
+
+})
+</script>
+</head>
+<body>
+</body>
+</html>

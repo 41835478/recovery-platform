@@ -1,0 +1,16 @@
+{extend name="common@public/base" /}
+{block name="body"}
+<section class="content-header">
+<h1>{$meta_title}</h1>
+  <ol class="breadcrumb">
+        {volist name="__menu__['parent']" id="pitem"}
+            <li class="{$pitem.action}">{if condition="$pitem.action eq ''"}<a href="{$pitem.url|url}" > {$pitem.title}</a>{else/} {$pitem.title}{/if}</li>
+        {/volist}
+  </ol>
+</section>
+<section class="content">
+<div class="row">
+{:hook('AdminIndex')}
+</div>
+</section>
+{/block}
